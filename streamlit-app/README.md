@@ -6,6 +6,10 @@ Final Project Teknologi Logika Fuzzy. Aplikasi web Python murni dengan Streamlit
 Data -> Preprocessing -> FCM -> Derajat keanggotaan (mu) -> KNN [fitur asli + mu] -> Prediksi + Evaluasi
 ```
 
+## Tampilan
+
+Antarmuka menggunakan palet warna netral dan tipografi DM Sans untuk teks, dengan Newsreader untuk judul. Kedua font dimuat dari Google Fonts; jika tidak tersedia, browser memakai font sistem sebagai pengganti. Pengaturan tema Streamlit ada di `.streamlit/config.toml`.
+
 ## Menjalankan di laptop
 
 Windows (CMD):
@@ -26,7 +30,11 @@ Browser akan terbuka di http://localhost:8501.
   (cari "Telco Customer Churn" di Kaggle). Jika file itu ada di repo, menu **Input Data** menyediakan
   pilihan "Dataset bawaan repo" sehingga versi online tidak perlu upload.
 - Atau unggah CSV langsung lewat menu **Input Data**.
-- Pilihan "Data contoh sintetis" hanya untuk uji coba. **Jangan dipakai untuk laporan.**
+- Dataset juga bisa dimasukkan lewat **Input manual (tabel)**: ketik atau tempel data pelanggan ke tabel.
+  Lengkapi kolom wajib untuk minimal 50 baris dan pastikan kolom `Churn` memiliki nilai `Yes` dan `No`.
+  `TotalCharges` boleh dikosongkan; nilainya akan diperkirakan dari `tenure × MonthlyCharges`.
+- Untuk demo, pilih **Data Bawaan** di menu **Input Data**. Aplikasi menyiapkan 3.000 baris data secara otomatis.
+  Data ini sintetis, bukan dataset Telco asli; **jangan dipakai untuk laporan**.
 
 ## Deploy ke Streamlit Community Cloud (gratis)
 
@@ -55,13 +63,13 @@ Catatan versi online:
 
 ## Struktur
 ```
-app.py                    aplikasi Streamlit (7 menu)
+app.py                    aplikasi Streamlit (7 menu dan gaya antarmuka)
 modules/fcm.py            Fuzzy C-Means (NumPy, implementasi mandiri)
 modules/preprocessing.py  validasi, pembersihan, one-hot, standarisasi
 modules/classifier.py     KNN dengan fitur [fitur asli | bobot x membership]
 modules/evaluation.py     metrik, validitas cluster, teks interpretasi
 modules/pipeline.py       alur end-to-end dan prediksi satu pelanggan
-data/                     dataset (taruh CSV asli di sini) + pembuat data sintetis
+data/                     lokasi CSV asli + pembuat data demo
 tests/test_app.py         uji end-to-end antarmuka tanpa browser
 .streamlit/config.toml    tema warna
 ```

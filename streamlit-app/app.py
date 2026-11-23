@@ -15,30 +15,75 @@ import streamlit as st
 from data.generate_sample_telco import generate
 from modules import evaluation as ev
 from modules.pipeline import ChurnFuzzyPipeline, Params
-from modules.preprocessing import (COLUMN_DESCRIPTIONS, DataValidationError,
-                                   validate_dataframe)
+from modules.preprocessing import (COLUMN_DESCRIPTIONS, DataValidationError, NUMERIC_COLS,
+                                   REQUIRED_COLUMNS, validate_dataframe)
 
-st.set_page_config(page_title="FCM + KNN Prediksi Churn", page_icon="📊", layout="wide")
+st.set_page_config(page_title="FCM + KNN Prediksi Churn", layout="wide")
 
 PAGES = ["Beranda", "Input Data", "Proses", "Hasil", "Evaluasi", "Prediksi", "Informasi Sistem"]
 PALETTE = ["#2563eb", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6",
            "#06b6d4", "#ec4899", "#84cc16", "#f97316", "#64748b"]
 REPO_DATASET = Path(__file__).parent / "data" / "WA_Fn-UseC_-Telco-Customer-Churn.csv"
+MANUAL_OPTIONS = {
+    "gender": ["Female", "Male"],
+    "Partner": ["Yes", "No"],
+    "Dependents": ["Yes", "No"],
+    "PhoneService": ["Yes", "No"],
+    "MultipleLines": ["Yes", "No", "No phone service"],
+    "InternetService": ["DSL", "Fiber optic", "No"],
+    "OnlineSecurity": ["Yes", "No", "No internet service"],
+    "OnlineBackup": ["Yes", "No", "No internet service"],
+    "DeviceProtection": ["Yes", "No", "No internet service"],
+    "TechSupport": ["Yes", "No", "No internet service"],
+    "StreamingTV": ["Yes", "No", "No internet service"],
+    "StreamingMovies": ["Yes", "No", "No internet service"],
+    "Contract": ["Month-to-month", "One year", "Two year"],
+    "PaperlessBilling": ["Yes", "No"],
+    "PaymentMethod": ["Electronic check", "Mailed check",
+                      "Bank transfer (automatic)", "Credit card (automatic)"],
+    "Churn": ["Yes", "No"],
+}
 
 CSS = """
 <style>
-.hero {background: linear-gradient(135deg,#2563eb,#1d4ed8); color:white; padding:2.2rem 2.4rem;
-       border-radius:20px; margin-bottom:1.2rem;}
-.hero small {color:#bfdbfe; font-weight:600;}
-.hero h1 {color:white; margin:.3rem 0 .6rem 0; font-size:2.2rem; line-height:1.2; padding:0;}
-.hero p {color:#dbeafe; max-width:760px; margin:0;}
-.chip {display:inline-block; background:#eff6ff; color:#1d4ed8; font-weight:600; padding:.3rem .8rem;
-       border-radius:8px; margin:.15rem 0;}
-.arrow {color:#94a3b8; margin:0 .35rem;}
-.badge {display:inline-block; color:white; font-weight:700; border-radius:50%; width:2.1rem; height:2.1rem;
-        line-height:2.1rem; text-align:center; margin-right:.6rem;}
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap');
+
+html, body, [class*="css"] {font-family:"DM Sans", "Segoe UI", sans-serif;}
+.stApp {background:#f7f6f2; color:#292d32;}
+[data-testid="stHeader"] {background:transparent;}
+[data-testid="stMainBlockContainer"] {max-width:1440px; padding-top:2.5rem; padding-bottom:4rem;}
+[data-testid="stSidebar"] {background:#f0eee8; border-right:1px solid #e3e0d8;}
+[data-testid="stSidebar"] > div:first-child {padding-top:2rem;}
+[data-testid="stSidebar"] h2 {font-family:"Newsreader", Georgia, serif; font-size:1.65rem; font-weight:500;}
+h1, h2, h3 {color:#252a30; letter-spacing:-.025em;}
+h1 {font-family:"Newsreader", Georgia, serif; font-size:2.35rem; font-weight:500; line-height:1.15;}
+h2, h3 {font-weight:600;}
+[data-testid="stMetric"] {background:#fff; border:1px solid #e7e4dc; border-radius:10px; padding:1rem 1.1rem;}
+[data-testid="stMetricLabel"] {color:#687078;}
+[data-testid="stVerticalBlockBorderWrapper"] {border-color:#e7e4dc; border-radius:10px;}
+[data-testid="stTabs"] button {font-weight:600;}
+[data-testid="stDataFrame"] {border:1px solid #e7e4dc; border-radius:8px;}
+.stButton > button {border-radius:7px; font-weight:600; min-height:2.7rem;}
+.stDownloadButton > button {border-radius:7px; font-weight:600;}
+.hero {background:#fff; border:1px solid #e7e4dc; border-top:3px solid #58776d;
+       color:#292d32; padding:2.3rem 2.5rem; border-radius:10px; margin-bottom:1.2rem;}
+.hero small {color:#58776d; font-size:.75rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase;}
+.hero h1 {font-family:"Newsreader", Georgia, serif; color:#252a30; margin:.75rem 0 .8rem;
+          font-size:2.75rem; font-weight:500; line-height:1.08; letter-spacing:-.03em; padding:0;}
+.hero p {color:#626a70; max-width:700px; line-height:1.7; margin:0;}
+.chip {display:inline-block; background:#fff; border:1px solid #e3e0d8; color:#46524e; font-weight:600;
+       padding:.35rem .7rem; border-radius:6px; margin:.15rem 0;}
+.arrow {color:#89918e; margin:0 .3rem;}
+.badge {display:inline-flex; align-items:center; justify-content:center; color:white; font-weight:700;
+        border-radius:6px; width:2rem; height:2rem; margin-right:.6rem;}
+@media (max-width: 640px) {
+    [data-testid="stMainBlockContainer"] {padding:1.5rem 1rem 3rem;}
+    .hero {padding:1.6rem 1.35rem;}
+    .hero h1 {font-size:2.15rem;}
+}
 </style>
 """
+st.markdown(CSS, unsafe_allow_html=True)
 
 
 # ------------------------------------------------------------------ helper
@@ -82,14 +127,20 @@ def load_dataset(df, name, sig):
     return True
 
 
+def empty_manual_dataset():
+    dtypes = {column: "object" for column in REQUIRED_COLUMNS}
+    dtypes.update({column: "float64" for column in NUMERIC_COLS})
+    dtypes["SeniorCitizen"] = "int64"
+    return pd.DataFrame({column: pd.Series(dtype=dtypes[column]) for column in REQUIRED_COLUMNS})
+
+
 # ------------------------------------------------------------------ halaman
 def page_home():
-    st.markdown(CSS, unsafe_allow_html=True)
     st.markdown("""
-<div class="hero"><small>Final Project Teknologi Logika Fuzzy</small>
-<h1>Segmentasi &amp; Prediksi Churn<br>Pelanggan Telekomunikasi</h1>
-<p>Pelanggan dikelompokkan secara fuzzy dengan Fuzzy C-Means, lalu derajat keanggotaannya dipakai
-KNN untuk memprediksi pelanggan yang berisiko berhenti berlangganan.</p></div>""", unsafe_allow_html=True)
+<div class="hero"><small>Analisis pelanggan · Telekomunikasi</small>
+<h1>Memahami pola pelanggan,<br>lebih awal.</h1>
+<p>Jelajahi segmen pelanggan dengan Fuzzy C-Means, lalu lihat bagaimana KNN memperkirakan risiko churn.
+Mulai dengan dataset dan tinjau hasilnya sebagai bahan analisis.</p></div>""", unsafe_allow_html=True)
     st.button("Mulai: Input Data →", type="primary", on_click=go_to, args=("Input Data",))
 
     c1, c2, c3 = st.columns(3)
@@ -108,7 +159,7 @@ KNN untuk memprediksi pelanggan yang berisiko berhenti berlangganan.</p></div>""
 
     st.subheader("Panduan Cepat")
     st.markdown("""
-1. **Input Data**: unggah CSV Telco Customer Churn (atau pakai dataset bawaan).
+1. **Input Data**: unggah CSV, isi tabel manual (minimal 50 pelanggan), atau pakai dataset bawaan.
 2. **Proses**: atur parameter, lalu jalankan.
 3. **Hasil**: lihat segmentasi, tabel membership, dan interpretasi segmen.
 4. **Evaluasi**: lihat metrik dan perbandingan baseline vs FCM + KNN.
@@ -118,15 +169,15 @@ KNN untuk memprediksi pelanggan yang berisiko berhenti berlangganan.</p></div>""
 
 def page_data():
     st.title("Input Data")
-    st.caption("Unggah dataset Telco Customer Churn (CSV). Data divalidasi sebelum dipakai.")
+    st.caption("Pilih cara memasukkan dataset Telco Customer Churn. Data divalidasi sebelum dipakai.")
 
-    sources = ["Unggah file CSV"]
+    sources = ["Unggah file CSV", "Input manual (tabel)"]
     if REPO_DATASET.exists():
         sources.append("Dataset bawaan repo (Telco asli)")
-    sources.append("Data contoh sintetis (hanya uji coba)")
+    sources.append("Data Bawaan")
     src = st.radio("Sumber data", sources, horizontal=True)
 
-    if src == sources[0]:
+    if src == "Unggah file CSV":
         f = st.file_uploader("Pilih file CSV", type=["csv"])
         if f is not None:
             sig = f"upload:{f.name}:{f.size}"
@@ -138,15 +189,52 @@ def page_data():
                 else:
                     if load_dataset(df, f.name, sig):
                         st.success("Dataset valid dan dimuat.")
+    elif src == "Input manual (tabel)":
+        st.info("Isi tabel langsung atau tempel data dari spreadsheet. Minimal 50 baris dengan nilai Churn 'Yes' dan 'No'.")
+        with st.form("manual_dataset_form"):
+            manual_df = st.data_editor(
+                empty_manual_dataset(),
+                num_rows="dynamic",
+                hide_index=True,
+                width="stretch",
+                height=420,
+                key="manual_dataset_editor",
+                column_config={
+                    "tenure": st.column_config.NumberColumn(
+                        "Lama berlangganan (bulan)", min_value=0, max_value=120, step=1,
+                        format="%d", required=True),
+                    "SeniorCitizen": st.column_config.NumberColumn(
+                        "Senior citizen (0/1)", min_value=0, max_value=1, step=1,
+                        format="%d", required=True),
+                    "MonthlyCharges": st.column_config.NumberColumn(
+                        "Tagihan bulanan", min_value=0, format="%.2f", required=True),
+                    "TotalCharges": st.column_config.NumberColumn(
+                        "Total tagihan", min_value=0, format="%.2f",
+                        help="Boleh dikosongkan; akan dihitung dari lama berlangganan × tagihan bulanan."),
+                    **{
+                        column: st.column_config.SelectboxColumn(
+                            column, options=options, required=True)
+                        for column, options in MANUAL_OPTIONS.items()
+                    },
+                },
+            )
+            manual_submitted = st.form_submit_button("Validasi & muat data manual", type="primary")
+        if manual_submitted:
+            entry_columns = [column for column in REQUIRED_COLUMNS if column != "TotalCharges"]
+            incomplete = manual_df[entry_columns].isna().any(axis=1)
+            if incomplete.any():
+                st.error(f"Lengkapi semua kolom wajib pada {int(incomplete.sum())} baris sebelum memuat data.")
+            elif load_dataset(manual_df, "Input manual", "manual"):
+                st.success("Dataset manual valid dan dimuat.")
     elif src.startswith("Dataset bawaan"):
         if st.button("Muat dataset bawaan", type="primary"):
             if load_dataset(pd.read_csv(REPO_DATASET), REPO_DATASET.name, "repo"):
                 st.success("Dataset bawaan dimuat.")
-    else:
-        st.warning("Data ini **sintetis**: hanya untuk menguji aplikasi, **jangan dipakai untuk laporan**.")
-        if st.button("Muat data contoh", type="primary"):
-            if load_dataset(generate(3000), "sample_telco_synthetic.csv", "sample"):
-                st.success("Data contoh dimuat.")
+    elif src == "Data Bawaan":
+        st.info("Data bawaan berisi 3.000 baris untuk demo. Data ini sintetis, bukan dataset Telco asli.")
+        if st.button("Muat data bawaan", type="primary"):
+            if load_dataset(generate(3000), "Data Bawaan", "sample"):
+                st.success("Data bawaan dimuat.")
 
     df = st.session_state.df_raw
     if df is None:
@@ -188,7 +276,7 @@ def page_process():
         test_size = c6.number_input("Proporsi data uji", 0.1, 0.5, d.test_size, 0.05)
         weight = c7.number_input("Bobot fitur membership", 0.0, 10.0, d.membership_weight, 0.5)
         seed = c8.number_input("Random state", 0, 10_000, d.random_state, 1)
-        submitted = st.form_submit_button("▶ Jalankan Proses", type="primary")
+        submitted = st.form_submit_button("Jalankan proses", type="primary")
 
     with st.expander("Tahapan pengolahan"):
         st.markdown("""
@@ -402,9 +490,9 @@ def page_predict():
     if out:
         pct = out["proba_churn"] * 100
         if out["pred"]:
-            st.error(f"⚠ **BERISIKO CHURN**: {pct:.0f}% tetangga terdekat churn")
+            st.error(f"**Berisiko churn** · {pct:.0f}% tetangga terdekat churn")
         else:
-            st.success(f"✓ **Kemungkinan bertahan**: {pct:.0f}% tetangga terdekat churn")
+            st.success(f"**Kemungkinan bertahan** · {pct:.0f}% tetangga terdekat churn")
         c1, c2 = st.columns([3, 2])
         with c1:
             mu = out["membership"]
@@ -454,13 +542,13 @@ def page_info():
 # ------------------------------------------------------------------ main
 init_state()
 with st.sidebar:
-    st.markdown("## 📊 FCM + KNN")
-    st.caption("Prediksi Churn Pelanggan")
+    st.markdown("## Telco Churn")
+    st.caption("Segmentasi dan prediksi")
     st.radio("Menu", PAGES, key="page", label_visibility="collapsed")
     st.divider()
     df_s = st.session_state.df_raw
-    st.write(("🟢 Dataset: " + f"{len(df_s):,} baris") if df_s is not None else "⚪ Dataset belum dimuat")
-    st.write("🟢 Model sudah dilatih" if st.session_state.results is not None else "⚪ Model belum dilatih")
+    st.write(("Dataset: " + f"{len(df_s):,} baris") if df_s is not None else "Dataset belum dimuat")
+    st.write("Model sudah dilatih" if st.session_state.results is not None else "Model belum dilatih")
 
 {"Beranda": page_home, "Input Data": page_data, "Proses": page_process, "Hasil": page_results,
  "Evaluasi": page_eval, "Prediksi": page_predict, "Informasi Sistem": page_info}[st.session_state.page]()
