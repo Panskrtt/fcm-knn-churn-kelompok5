@@ -1,0 +1,13 @@
+﻿Skenario,Variabel,Nilai,Model,Akurasi,Precision,Recall,F1,Silhouette,PC,PE,J_akhir,Iterasi,Konvergen
+S3,Tetangga k,3,Baseline,0.7523,0.5321,0.5535,0.5426,,,,,,
+S3,Tetangga k,3,FCM + KNN,0.753,0.5339,0.5481,0.5409,0.4502,0.6736,0.5834,3271.62,37.0,Ya
+S3,Tetangga k,5,Baseline,0.7587,0.5443,0.5588,0.5515,,,,,,
+S3,Tetangga k,5,FCM + KNN,0.7537,0.5351,0.5508,0.5428,0.4502,0.6736,0.5834,3271.62,37.0,Ya
+S3,Tetangga k,7,Baseline,0.7601,0.5476,0.5535,0.5505,,,,,,
+S3,Tetangga k,7,FCM + KNN,0.7587,0.5447,0.5535,0.5491,0.4502,0.6736,0.5834,3271.62,37.0,Ya
+S3,Tetangga k,11,Baseline,0.7807,0.5876,0.5829,0.5852,,,,,,
+S3,Tetangga k,11,FCM + KNN,0.7779,0.5827,0.5749,0.5787,0.4502,0.6736,0.5834,3271.62,37.0,Ya
+S3,Tetangga k,15,Baseline,0.78,0.5889,0.5668,0.5777,,,,,,
+S3,Tetangga k,15,FCM + KNN,0.7771,0.5829,0.5642,0.5734,0.4502,0.6736,0.5834,3271.62,37.0,Ya
+S3,Tetangga k,21,Baseline,0.7771,0.5824,0.5668,0.5745,,,,,,
+S3,Tetangga k,21,FCM + KNN,0.78,0.5884,0.5695,0.5788,0.4502,0.6736,0.5834,3271.62,37.0,Ya

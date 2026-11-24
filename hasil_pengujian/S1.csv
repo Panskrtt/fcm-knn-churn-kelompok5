@@ -1,0 +1,11 @@
+﻿Skenario,Variabel,Nilai,Model,Akurasi,Precision,Recall,F1,Silhouette,PC,PE,J_akhir,Iterasi,Konvergen
+S1,Jumlah cluster c,2,Baseline,0.7587,0.5443,0.5588,0.5515,,,,,,
+S1,Jumlah cluster c,2,FCM + KNN,0.7559,0.5389,0.5561,0.5474,0.4832,0.7717,0.3701,5902.04,21.0,Ya
+S1,Jumlah cluster c,3,Baseline,0.7587,0.5443,0.5588,0.5515,,,,,,
+S1,Jumlah cluster c,3,FCM + KNN,0.7537,0.5351,0.5508,0.5428,0.4502,0.6736,0.5834,3271.62,37.0,Ya
+S1,Jumlah cluster c,4,Baseline,0.7587,0.5443,0.5588,0.5515,,,,,,
+S1,Jumlah cluster c,4,FCM + KNN,0.7523,0.5323,0.5508,0.5414,0.4697,0.6405,0.7037,2136.19,82.0,Ya
+S1,Jumlah cluster c,5,Baseline,0.7587,0.5443,0.5588,0.5515,,,,,,
+S1,Jumlah cluster c,5,FCM + KNN,0.7516,0.5309,0.5508,0.5407,0.4404,0.6191,0.781,1478.38,69.0,Ya
+S1,Jumlah cluster c,6,Baseline,0.7587,0.5443,0.5588,0.5515,,,,,,
+S1,Jumlah cluster c,6,FCM + KNN,0.7551,0.5377,0.5535,0.5455,0.4169,0.585,0.8762,1150.59,71.0,Ya

@@ -1,0 +1,17 @@
+{
+  "baris": 7043,
+  "kolom": 21,
+  "tingkat_churn_persen": 26.54,
+  "totalcharges_kosong": 11,
+  "parameter_bawaan": {
+    "n_clusters": 3,
+    "m": 2.0,
+    "tol": 1e-05,
+    "max_iter": 300,
+    "k": 5,
+    "test_size": 0.2,
+    "membership_weight": 1.0,
+    "random_state": 42
+  },
+  "jumlah_fitur_knn_baseline": 45
+}

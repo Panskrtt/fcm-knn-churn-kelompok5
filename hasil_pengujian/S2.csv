@@ -1,0 +1,9 @@
+﻿Skenario,Variabel,Nilai,Model,Akurasi,Precision,Recall,F1,Silhouette,PC,PE,J_akhir,Iterasi,Konvergen
+S2,Fuzzifier m,1.5,Baseline,0.7587,0.5443,0.5588,0.5515,,,,,,
+S2,Fuzzifier m,1.5,FCM + KNN,0.7551,0.5377,0.5535,0.5455,0.4535,0.8462,0.2774,4426.11,32.0,Ya
+S2,Fuzzifier m,2.0,Baseline,0.7587,0.5443,0.5588,0.5515,,,,,,
+S2,Fuzzifier m,2.0,FCM + KNN,0.7537,0.5351,0.5508,0.5428,0.4502,0.6736,0.5834,3271.62,37.0,Ya
+S2,Fuzzifier m,2.5,Baseline,0.7587,0.5443,0.5588,0.5515,,,,,,
+S2,Fuzzifier m,2.5,FCM + KNN,0.753,0.5335,0.5535,0.5433,0.4474,0.5489,0.7824,2174.55,39.0,Ya
+S2,Fuzzifier m,3.0,Baseline,0.7587,0.5443,0.5588,0.5515,,,,,,
+S2,Fuzzifier m,3.0,FCM + KNN,0.7551,0.5375,0.5561,0.5466,0.4472,0.4724,0.8973,1369.9,57.0,Ya
